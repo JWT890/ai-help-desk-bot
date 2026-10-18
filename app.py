@@ -96,17 +96,6 @@ issue = st.text_area(
     placeholder="e.g. I can't connect to VPN from home"
 )
 
-if st.button("Submit issue", type="primary") and issue.strip():
-    with st.spinner("Triaging with Groq…"):
-        result   = triage_issue(issue)
-        snow_t   = create_snow_incident(issue, result)
-        ticket   = log_ticket_locally(issue, result, snow_t)
-        result["ticket_id"]   = ticket
-        result["snow_ticket"] = snow_t
-    st.session_state["result"] = result
-    st.session_state.pop("prefill", None)
-    st.rerun()
-
 # ── Triage result ──────────────────────────────────────────
 if "result" in st.session_state:
     r    = st.session_state["result"]
@@ -151,19 +140,6 @@ if st.button("Submit issue", type="primary") and issue.strip():
     st.rerun()
 
 # ── Recent tickets ─────────────────────────────────────────
-st.divider()
-st.subheader("Recent tickets")
-import pandas as pd
-tickets = get_recent_tickets(15)
-if tickets:
-    df = pd.DataFrame(tickets)[[
-        "id", "created_at", "category", "severity", "escalate", "snow_number"
-    ]]
-    df.columns = ["Ticket", "Created", "Category", "Severity", "Escalated", "SNOW #"]
-    st.dataframe(df, use_container_width=True, hide_index=True)
-else:
-    st.caption("No tickets yet.")
-
 st.divider()
 st.subheader("Recent tickets")
 tickets = get_recent_tickets(15)
