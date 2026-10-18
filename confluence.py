@@ -10,11 +10,6 @@ def get_secret(key):
         pass
     return os.getenv(key)
 
-CONF_URL   = get_secret("CONFLUENCE_URL")
-CONF_EMAIL = get_secret("CONFLUENCE_EMAIL")
-CONF_TOKEN = get_secret("CONFLUENCE_TOKEN")
-CONF_SPACE = get_secret("CONFLUENCE_SPACE") or "ITKB"
-CONF_AUTH  = (CONF_EMAIL, CONF_TOKEN)
 CONF_HEADS = {"Accept": "application/json"}
 
 def strip_html(html):
@@ -22,11 +17,17 @@ def strip_html(html):
     return re.sub(r"\s+", " ", text).strip()
 
 def get_space_pages():
+    conf_url   = get_secret("CONFLUENCE_URL")
+    conf_email = get_secret("CONFLUENCE_EMAIL")
+    conf_token = get_secret("CONFLUENCE_TOKEN")
+    conf_space = get_secret("CONFLUENCE_SPACE") or "ITKB"
+    conf_auth  = (conf_email, conf_token)
+    
     r = requests.get(
-        f"{CONF_URL}/wiki/rest/api/content",
-        params={"spaceKey": CONF_SPACE,
+        f"{conf_url}/wiki/rest/api/content",
+        params={"spaceKey": conf_space,
                 "expand": "body.storage,title", "limit": 50},
-        auth=CONF_AUTH, headers=CONF_HEADS, timeout=10
+        auth=conf_auth, headers=CONF_HEADS, timeout=10
     )
     r.raise_for_status()
     return r.json()["results"]
