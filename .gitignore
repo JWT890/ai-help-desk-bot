@@ -3,3 +3,6 @@
 venv/
 .streamlit/
 streamlit
+chrome_db/
+tickets.db
+.DS_Store

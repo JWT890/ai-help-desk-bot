@@ -1,30 +1,26 @@
-SYSTEM_PROMPT = """You are a IT help desk triage AI.
-Respond ONLY with a JSON object. No markdown. No preamble. Schema:
+SYSTEM_PROMPT = """You are an IT help desk triage AI.
+Respond ONLY with a JSON object. No markdown. Schema:
 {
-    "category": "VPN|Password/Account|Microsoft 365|Printer|Network|Software Installation|Other",
-    "severity": "Low|Medium|High|Critical",
-    "summary": "one sentence, max 15 words",
-    "steps": ["step1", "step2", "step3"],
-    "escalate": true or false,
-    "escalate_reason": "reason, or empty string",
-    "kb_article": "most relevant KB article title"
-}
-severity: Critical=business impact, High=production blocking or security, Medium=work disrupted, Low=minor
-escalate: true when hands on IT is needed, not just self-service steps"""
-
-from http import client
-
+  "category": "VPN|Password/Account|Microsoft 365|
+               Printer|Network|Software Installation|Other",
+  "severity":  "Low|Medium|High",
+  "summary":   "one sentence max 15 words",
+  "steps":     ["step1","step2","step3","step4"],
+  "escalate":  true or false,
+  "escalate_reason": "reason or empty string",
+  "kb_article": "most relevant KB page title"
+}"""
 from groq import Groq
-import json, os, chromadb
-
-import sqlite3, uuid
+import json, os, sqlite3, uuid, chromadb
 from datetime import datetime
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_secret(key):
     try:
         import streamlit as st
         return st.secrets.get(key) or os.getenv(key)
-    except: return os.gatenv(key)
+    except: return os.getenv(key)
 
 client = Groq(api_key=get_secret("GROQ_API_KEY"))
 _col = None
@@ -37,41 +33,57 @@ def get_collection():
     return _col
 
 def search_kb(query, n=2):
-    return get_collection().query(query_texts=[query], n_results=n)["documents"][0]
+    return get_collection().query(
+        query_texts=[query], n_results=n
+    )["documents"][0]
 
 def triage_issue(issue: str) -> dict:
     kb = "\n\n---\n\n".join(search_kb(issue))
     resp = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="qwen/qwen3.8-27b",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": f"KB:\n{kb}\n\nIssue: {issue}"}
+            {"role": "user", "content": f"KB:\n{kb}\n\nIssue: {issue}"}
         ],
-        temperature=0.1,
-        max_tokens=1024,
+        temperature=0.1, max_tokens=1024,
         response_format={"type": "json_object"}
     )
     return json.loads(resp.choices[0].message.content)
 
-def _init_db():
-    con = sqlite3.connect("tickets.db")
-    con.execute("""
-    CREATE TABLE IF NOT EXISTS tickets (
-        id TEXT PRIMARY KEY,
-        issue TEXT NOT NULL,
-        category TEXT NOT NULL,
-        severity TEXT NOT NULL,
-        summary TEXT NOT NULL,
-        steps TEXT NOT NULL,
-        escalate BOOLEAN NOT NULL,
-        escalate_reason TEXT NOT NULL,
-        kb_article TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""")    
-    con.commit()
-    con.close()
-
-_init_db()
-
 def log_ticket_locally(issue, triage, snow=None) -> str:
-    
+    tid = "INC-" + str(uuid.uuid4())[:8].upper()
+    con = sqlite3.connect("tickets.db")
+    con.execute("""CREATE TABLE IF NOT EXISTS tickets (
+        id TEXT, created_at TEXT, issue TEXT,
+        category TEXT, severity TEXT, summary TEXT,
+        steps TEXT, escalate INTEGER, escalate_reason TEXT,
+        kb_article TEXT, snow_number TEXT, snow_url TEXT)""")
+    con.execute("INSERT INTO tickets VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (
+        tid, datetime.utcnow().isoformat(), issue,
+        triage.get("category"), triage.get("severity"),
+        triage.get("summary"), json.dumps(triage.get("steps",[])),
+        int(triage.get("escalate",False)), triage.get("escalate_reason",""),
+        triage.get("kb_article",""),
+        snow["number"] if snow else "", snow["url"] if snow else ""
+    ))
+    con.commit(); con.close()
+    return tid
+
+def get_recent_tickets(limit=15):
+    try:
+        con = sqlite3.connect("tickets.db")
+        con.row_factory = sqlite3.Row
+        rows = con.execute(
+            "SELECT * FROM tickets ORDER BY created_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+        con.close()
+        return [dict(r) for r in rows]
+    except sqlite3.OperationalError:
+        return []   # table doesn't exist yet — return empty list
+
+from triage import triage_issue
+import json
+# Must have run ingest_confluence_to_chromadb() first
+r = triage_issue("I can't connect to VPN from home")
+print(json.dumps(r, indent=2))
+# Confirm: clean JSON, steps from your Confluence content
