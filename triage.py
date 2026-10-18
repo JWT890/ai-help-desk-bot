@@ -50,7 +50,7 @@ def triage_issue(issue: str) -> dict:
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"KB:\n{kb}\n\nIssue: {issue}"}
         ],
-        temperature=0.1, max_tokens=1024,
+        temperature=0.1, max_tokens=500,
         response_format={"type": "json_object"}
     )
     return json.loads(resp.choices[0].message.content)
