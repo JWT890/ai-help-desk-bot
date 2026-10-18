@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import os
 from pathlib import Path
 from triage import triage_issue, log_ticket_locally, get_recent_tickets
 from servicenow import create_snow_incident, snow_status
@@ -39,6 +40,13 @@ with st.sidebar:
 
     st.divider()
     st.caption("Model: llama-3.1-8b-instant")
+
+    email_addr = os.getenv("EMAIL_NOTIFY")
+    if email_addr:
+        st.success("Email notifications on")
+        st.caption(f"→ {email_addr}")
+    else:
+        st.warning("Email not configured")
 
 if "result" in st.session_state:
     r = st.session_state["result"]
@@ -123,6 +131,24 @@ if "result" in st.session_state:
     st.caption(f"KB: {r['kb_article']}")
     if r.get("escalate"):
         st.error(f"⚠️ **Escalation needed** — {r['escalate_reason']}")
+
+from emailer import send_ticket_email
+
+# Inside the submit button handler:
+if st.button("Submit issue", type="primary") and issue.strip():
+    with st.spinner("Triaging with Groq…"):
+        result = triage_issue(issue)
+        snow_t = create_snow_incident(issue, result)
+        ticket = log_ticket_locally(issue, result, snow_t)
+        result["ticket_id"]   = ticket
+        result["snow_ticket"] = snow_t
+        
+        # Send email notification
+        send_ticket_email(ticket, result, issue, snow_t)
+    
+    st.session_state["result"] = result
+    st.session_state.pop("prefill", None)
+    st.rerun()
 
 # ── Recent tickets ─────────────────────────────────────────
 st.divider()
