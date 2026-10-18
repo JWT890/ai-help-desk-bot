@@ -45,7 +45,7 @@ def search_kb(query, n=2):
 def triage_issue(issue: str) -> dict:
     kb = "\n\n---\n\n".join(search_kb(issue))
     resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="gemma2-9b-it",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"KB:\n{kb}\n\nIssue: {issue}"}
