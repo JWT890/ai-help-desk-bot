@@ -3,8 +3,12 @@ import os, requests, chromadb, re
 def get_secret(key):
     try:
         import streamlit as st
-        return st.secrets.get(key) or os.getenv(key)
-    except: return os.getenv(key)
+        val = st.secrets.get(key)
+        if val:
+            return str(val).strip()
+    except:
+        pass
+    return os.getenv(key)
 
 CONF_URL   = get_secret("CONFLUENCE_URL")
 CONF_EMAIL = get_secret("CONFLUENCE_EMAIL")
@@ -46,16 +50,23 @@ def ingest_confluence_to_chromadb() -> int:
     return len(docs)
 
 def confluence_status():
-    if not all([CONF_URL, CONF_EMAIL, CONF_TOKEN]):
+    url   = get_secret("CONFLUENCE_URL")
+    email = get_secret("CONFLUENCE_EMAIL")
+    token = get_secret("CONFLUENCE_TOKEN")
+    space = get_secret("CONFLUENCE_SPACE") or "ITKB"
+    if not all([url, email, token]):
         return {"connected": False, "reason": "CONFLUENCE_* vars not set"}
     try:
-        r = requests.get(f"{CONF_URL}/wiki/rest/api/space/{CONF_SPACE}",
-                         auth=CONF_AUTH, headers=CONF_HEADS, timeout=5)
+        r = requests.get(
+            f"{url}/wiki/rest/api/space/{space}",
+            auth=(email, token),
+            headers={"Accept": "application/json"},
+            timeout=5
+        )
         return {"connected": r.status_code == 200,
-                "space": CONF_SPACE, "url": CONF_URL}
+                "space": space, "url": url}
     except Exception as e:
         return {"connected": False, "reason": str(e)}
-
 def create_kb_article(title, issue, steps, resolution):
     """Write a resolved ticket back to Confluence as a new KB page."""
     steps_html = "".join(f"<li>{step}</li>" for step in steps)

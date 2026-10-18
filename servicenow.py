@@ -3,8 +3,12 @@ import requests, os
 def get_secret(key):
     try:
         import streamlit as st
-        return st.secrets.get(key) or os.getenv(key)
-    except: return os.getenv(key)
+        val = st.secrets.get(key)
+        if val:
+            return str(val).strip()
+    except:
+        pass
+    return os.getenv(key)
 
 SNOW_INSTANCE = get_secret("SNOW_INSTANCE") or ""
 SNOW_AUTH = (get_secret("SNOW_USER"), get_secret("SNOW_PASSWORD"))
@@ -46,15 +50,21 @@ def create_snow_incident(issue, triage) -> dict | None:
         print(f"[SNOW] {e}"); return None
 
 def snow_status():
-    if not SNOW_INSTANCE: return {"connected":False,"reason":"not configured"}
+    instance = get_secret("SNOW_INSTANCE")
+    user     = get_secret("SNOW_USER")
+    password = get_secret("SNOW_PASSWORD")
+    if not all([instance, user, password]):
+        return {"connected": False, "reason": "not configured"}
     try:
         r = requests.get(
-            f"https://{SNOW_INSTANCE}/api/now/table/incident?sysparm_limit=1",
-            auth=SNOW_AUTH, headers=HEADS, timeout=5)
-        return {"connected": r.status_code==200, "instance": SNOW_INSTANCE}
+            f"https://{instance}/api/now/table/incident?sysparm_limit=1",
+            auth=(user, password),
+            headers={"Accept": "application/json"},
+            timeout=5
+        )
+        return {"connected": r.status_code == 200, "instance": instance}
     except Exception as e:
-        return {"connected":False,"reason":str(e)}
-
+        return {"connected": False, "reason": str(e)}
 from servicenow import create_snow_incident
 r = create_snow_incident("Test — safe to delete", {
     "category":"VPN","severity":"Low",
