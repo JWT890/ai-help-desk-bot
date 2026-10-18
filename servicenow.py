@@ -10,8 +10,6 @@ def get_secret(key):
         pass
     return os.getenv(key)
 
-SNOW_INSTANCE = get_secret("SNOW_INSTANCE") or ""
-SNOW_AUTH = (get_secret("SNOW_USER"), get_secret("SNOW_PASSWORD"))
 HEADS = {"Content-Type":"application/json","Accept":"application/json"}
 SEV_MAP = {"High":"1","Medium":"2","Low":"3"}
 GROUP_MAP = {
@@ -25,14 +23,17 @@ GROUP_MAP = {
 }
 
 def create_snow_incident(issue, triage) -> dict | None:
-    if not all([SNOW_INSTANCE, SNOW_AUTH[0], SNOW_AUTH[1]]):
+    # Read secrets inside function, not at module level
+    snow_instance = get_secret("SNOW_INSTANCE") or ""
+    snow_auth = (get_secret("SNOW_USER"), get_secret("SNOW_PASSWORD"))
+    
+    if not all([snow_instance, snow_auth[0], snow_auth[1]]):
         return None
-    sev   = triage.get("severity","Medium")
-    steps = "\n".join(f"{i+1}. {s}"
-                      for i,s in enumerate(triage.get("steps",[])))
+    sev   = triage.get("severity", "Medium")
+    steps = "\n".join(f"{i+1}. {s}" for i,s in enumerate(triage.get("steps",[])))
     try:
         r = requests.post(
-            f"https://{SNOW_INSTANCE}/api/now/table/incident",
+            f"https://{snow_instance}/api/now/table/incident",
             json={
                 "short_description": triage.get("summary",""),
                 "description": f"Issue:\n{issue}\n\nAI steps:\n{steps}",
@@ -41,11 +42,11 @@ def create_snow_incident(issue, triage) -> dict | None:
                 "priority":         "1" if triage.get("escalate") else SEV_MAP.get(sev,"2"),
                 "assignment_group": GROUP_MAP.get(triage.get("category","Other"),"IT Help Desk"),
             },
-            auth=SNOW_AUTH, headers=HEADS, timeout=10
+            auth=snow_auth, headers=HEADS, timeout=10
         )
         res = r.json()["result"]
         return {"number": res["number"], "sys_id": res["sys_id"],
-                "url": f"https://{SNOW_INSTANCE}/incident.do?sys_id={res['sys_id']}"}
+                "url": f"https://{snow_instance}/incident.do?sys_id={res['sys_id']}"}
     except Exception as e:
         print(f"[SNOW] {e}"); return None
 
