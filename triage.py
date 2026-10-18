@@ -16,11 +16,16 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
+
 def get_secret(key):
     try:
         import streamlit as st
-        return st.secrets.get(key) or os.getenv(key)
-    except: return os.getenv(key)
+        val = st.secrets.get(key)
+        if val:
+            return str(val).strip()
+    except:
+        pass
+    return os.getenv(key)
 
 client = Groq(api_key=get_secret("GROQ_API_KEY"))
 _col = None
