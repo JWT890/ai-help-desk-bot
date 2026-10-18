@@ -63,6 +63,9 @@ def snow_status():
             headers={"Accept": "application/json"},
             timeout=5
         )
-        return {"connected": r.status_code == 200, "instance": instance}
+        return {"connected": r.status_code == 200, 
+                "instance": instance,
+                "status_code": r.status_code,      # ← add this
+                "response": r.text[:100]}           # ← and this
     except Exception as e:
         return {"connected": False, "reason": str(e)}
