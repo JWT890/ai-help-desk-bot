@@ -96,6 +96,9 @@ issue = st.text_area(
     placeholder="e.g. I can't connect to VPN from home"
 )
 
+st.write("SNOW_INSTANCE:", st.secrets.get("SNOW_INSTANCE", "NOT FOUND"))
+st.write("CONF_URL:", st.secrets.get("CONFLUENCE_URL", "NOT FOUND"))
+
 # ── Triage result ──────────────────────────────────────────
 if "result" in st.session_state:
     r    = st.session_state["result"]
