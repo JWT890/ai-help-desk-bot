@@ -71,6 +71,9 @@ r = create_snow_incident("Test — safe to delete", {
     "summary":"Test ticket from AI triage system",
     "steps":["1","2","3","4"],
     "escalate":False,"escalate_reason":"","kb_article":"VPN"
+    r = requests.post(...)
+    print(f"[SNOW] Status: {r.status_code}")
+    print(f"[SNOW] Response: {r.text[:200]}")
 })
 print(r)
 # {"number": "INC0010042", "sys_id": "...", "url": "..."}
