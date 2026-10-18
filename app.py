@@ -97,7 +97,10 @@ issue = st.text_area(
 )
 
 st.write("SNOW_INSTANCE:", st.secrets.get("SNOW_INSTANCE", "NOT FOUND"))
-st.write("CONF_URL:", st.secrets.get("CONFLUENCE_URL", "NOT FOUND"))
+st.write("SNOW_USER:", st.secrets.get("SNOW_USER", "NOT FOUND"))
+st.write("SNOW_PASSWORD:", "SET" if st.secrets.get("SNOW_PASSWORD") else "NOT FOUND")
+st.write("CONF_EMAIL:", st.secrets.get("CONFLUENCE_EMAIL", "NOT FOUND"))
+st.write("CONF_TOKEN:", "SET" if st.secrets.get("CONFLUENCE_TOKEN") else "NOT FOUND")
 
 # ── Triage result ──────────────────────────────────────────
 if "result" in st.session_state:
