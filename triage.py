@@ -40,7 +40,7 @@ def search_kb(query, n=2):
 def triage_issue(issue: str) -> dict:
     kb = "\n\n---\n\n".join(search_kb(issue))
     resp = client.chat.completions.create(
-        model="qwen/qwen3.8-27b",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"KB:\n{kb}\n\nIssue: {issue}"}
