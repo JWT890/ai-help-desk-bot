@@ -6,6 +6,11 @@ from triage import triage_issue, log_ticket_locally, get_recent_tickets
 from servicenow import create_snow_incident, snow_status
 from confluence import ingest_confluence_to_chromadb, confluence_status, create_kb_article
 
+snow = snow_status()
+conf = confluence_status()
+st.write("SNOW status:", snow)
+st.write("CONF status:", conf)
+
 st.set_page_config(page_title="AI IT Help Desk",
                    page_icon="🤖", layout="wide")
 
@@ -95,7 +100,6 @@ issue = st.text_area(
     height=100,
     placeholder="e.g. I can't connect to VPN from home"
 )
-
 st.write("SNOW_INSTANCE:", st.secrets.get("SNOW_INSTANCE", "NOT FOUND"))
 st.write("SNOW_USER:", st.secrets.get("SNOW_USER", "NOT FOUND"))
 st.write("SNOW_PASSWORD:", "SET" if st.secrets.get("SNOW_PASSWORD") else "NOT FOUND")
