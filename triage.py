@@ -81,9 +81,5 @@ def get_recent_tickets(limit=15):
     except sqlite3.OperationalError:
         return []   # table doesn't exist yet — return empty list
 
-from triage import triage_issue
-import json
-# Must have run ingest_confluence_to_chromadb() first
-r = triage_issue("I can't connect to VPN from home")
-print(json.dumps(r, indent=2))
+
 # Confirm: clean JSON, steps from your Confluence content
