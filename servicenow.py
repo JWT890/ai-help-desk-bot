@@ -20,6 +20,14 @@ CATEGORY_MAP = {
     "Password/Account": "inquiry",
     "Microsoft 365": "software",
 }
+GROUP_MAP = {
+    "VPN": "IT Help Desk",
+    "Network": "IT Help Desk",
+    "Software Installation": "IT Help Desk",
+    "Printer": "IT Help Desk",
+    "Password/Account": "IT Help Desk",
+    "Microsoft 365": "IT Help Desk",
+}
 
 def create_snow_incident(issue, triage) -> dict | None:
     snow_instance = get_secret("SNOW_INSTANCE") or ""
