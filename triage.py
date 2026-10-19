@@ -55,3 +55,38 @@ def triage_issue(issue: str) -> dict:
     result["kb_article"] = top.get("title", "")   # from Confluence, not the model
     result["kb_url"] = top.get("url", "")
     return result
+
+from datetime import timezone
+
+def log_ticket_locally(issue, triage, snow=None) -> str:
+    tid = "INC-" + str(uuid.uuid4())[:8].upper()
+    con = sqlite3.connect("tickets.db")
+    con.execute("""CREATE TABLE IF NOT EXISTS tickets (
+        id TEXT, created_at TEXT, issue TEXT,
+        category TEXT, severity TEXT, summary TEXT,
+        steps TEXT, escalate INTEGER, escalate_reason TEXT,
+        kb_article TEXT, snow_number TEXT, snow_url TEXT)""")
+    con.execute("INSERT INTO tickets VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (
+        tid, datetime.now(timezone.utc).isoformat(), issue,
+        triage.get("category"), triage.get("severity"),
+        triage.get("summary"), json.dumps(triage.get("steps", [])),
+        int(triage.get("escalate", False)), triage.get("escalate_reason", ""),
+        triage.get("kb_article", ""),
+        snow["number"] if snow else "", snow["url"] if snow else ""
+    ))
+    con.commit()
+    con.close()
+    return tid
+
+
+def get_recent_tickets(limit=15):
+    try:
+        con = sqlite3.connect("tickets.db")
+        con.row_factory = sqlite3.Row
+        rows = con.execute(
+            "SELECT * FROM tickets ORDER BY created_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+        con.close()
+        return [dict(r) for r in rows]
+    except sqlite3.OperationalError:
+        return []
