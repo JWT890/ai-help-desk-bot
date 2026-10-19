@@ -95,11 +95,6 @@ issue = st.text_area(
     height=100,
     placeholder="e.g. I can't connect to VPN from home"
 )
-st.write("SNOW_INSTANCE:", st.secrets.get("SNOW_INSTANCE", "NOT FOUND"))
-st.write("SNOW_USER:", st.secrets.get("SNOW_USER", "NOT FOUND"))
-st.write("SNOW_PASSWORD:", "SET" if st.secrets.get("SNOW_PASSWORD") else "NOT FOUND")
-st.write("CONF_EMAIL:", st.secrets.get("CONFLUENCE_EMAIL", "NOT FOUND"))
-st.write("CONF_TOKEN:", "SET" if st.secrets.get("CONFLUENCE_TOKEN") else "NOT FOUND")
 
 # ── Triage result ──────────────────────────────────────────
 if "result" in st.session_state:
@@ -160,14 +155,4 @@ if tickets:
     st.dataframe(rows, use_container_width=True, hide_index=True)
 else:
     st.caption("No tickets yet.")
-
-import hashlib, os
-pw   = get_secret("SNOW_PASSWORD") or ""
-user = get_secret("SNOW_USER") or ""
-st.write("user repr:", repr(user))
-st.write("pw len:", len(pw), "| sha:", hashlib.sha256(pw.encode()).hexdigest()[:8])
-st.write("in st.secrets:", "SNOW_PASSWORD" in st.secrets, "| in env:", "SNOW_PASSWORD" in os.environ)
-import hashlib, getpass
-pw = getpass.getpass("pw: ")
-print(len(pw), hashlib.sha256(pw.encode()).hexdigest()[:8])
 
