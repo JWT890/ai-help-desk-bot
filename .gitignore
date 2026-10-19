@@ -7,3 +7,4 @@ chrome_db/
 tickets.db
 .DS_Store
 models.txt
+test_snow.py
