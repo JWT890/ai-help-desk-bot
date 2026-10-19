@@ -6,17 +6,6 @@ from triage import triage_issue, log_ticket_locally, get_recent_tickets
 from servicenow import create_snow_incident, snow_status
 from confluence import ingest_confluence_to_chromadb, confluence_status, create_kb_article
 from servicenow import get_secret
-
-snow = snow_status()
-conf = confluence_status()
-st.write("SNOW status:", snow)
-st.write("CONF status:", conf)
-import hashlib
-_pw   = get_secret("SNOW_PASSWORD") or ""
-_user = get_secret("SNOW_USER") or ""
-st.write("user repr:", repr(_user))
-st.write("pw len:", len(_pw), "| sha:", hashlib.sha256(_pw.encode()).hexdigest()[:8])
-
 st.set_page_config(page_title="AI IT Help Desk",
                    page_icon="🤖", layout="wide")
 
@@ -182,6 +171,3 @@ import hashlib, getpass
 pw = getpass.getpass("pw: ")
 print(len(pw), hashlib.sha256(pw.encode()).hexdigest()[:8])
 
-import hashlib, os
-h = lambda s: hashlib.sha256((s or "").encode()).hexdigest()[:8]
-st.write("st.secrets:", h(st.secrets.get("SNOW_PASSWORD")), "| env:", h(os.environ.get("SNOW_PASSWORD")), "| get_secret:", h(get_secret("SNOW_PASSWORD")))
