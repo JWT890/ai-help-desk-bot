@@ -68,18 +68,21 @@ def confluence_status():
     token = get_secret("CONFLUENCE_TOKEN")
     space = get_secret("CONFLUENCE_SPACE") or "ITKB"
     if not all([url, email, token]):
-        return {"connected": False, "reason": "CONFLUENCE_* vars not set"}
+        return {"connected": False, "reason": "missing secrets"}
     try:
         r = requests.get(
             f"{url}/wiki/rest/api/space/{space}",
             auth=(email, token),
             headers={"Accept": "application/json"},
-            timeout=5
+            timeout=10
         )
         return {"connected": r.status_code == 200,
-                "space": space, "url": url}
+                "space": space, "url": url,
+                "status_code": r.status_code,
+                "response": r.text[:200]}
     except Exception as e:
-        return {"connected": False, "reason": str(e)}
+        return {"connected": False, "reason": str(e),
+                "space": space, "url": url}
 def create_kb_article(title, issue, steps, resolution):
     """Write a resolved ticket back to Confluence as a new KB page."""
     conf_url   = get_secret("CONFLUENCE_URL")
