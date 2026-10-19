@@ -1,4 +1,11 @@
 import os, requests, chromadb, re
+_client = None
+
+def get_chroma_client():
+    global _client
+    if _client is None:
+        _client = chromadb.PersistentClient(path="./chroma_db")
+    return _client
 
 def get_secret(key):
     try:
@@ -43,7 +50,7 @@ def ingest_confluence_to_chromadb() -> int:
     if not pages:
         return 0
 
-    client = chromadb.PersistentClient(path="./chroma_db")
+    client = get_chroma_client()
     collection = client.get_or_create_collection("it_kb")
 
     # Clear old contents instead of deleting the collection

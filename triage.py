@@ -14,6 +14,7 @@ import json, os, sqlite3, uuid, chromadb
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
+from confluence import get_chroma_client
 
 
 def get_secret(key):
@@ -31,8 +32,7 @@ client = Groq(api_key=get_secret("GROQ_API_KEY"))
 MODEL = "qwen/qwen3.8-27b"   # keep in one place, reuse in app.py
 
 def get_collection():
-    c = chromadb.PersistentClient("./chroma_db")
-    return c.get_collection("it_kb")
+    return get_chroma_client().get_or_create_collection("it_kb")
 
 def search_kb(query, n=2):
     res = get_collection().query(query_texts=[query], n_results=n)
