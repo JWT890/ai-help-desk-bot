@@ -34,33 +34,36 @@ def get_space_pages():
 
 def ingest_confluence_to_chromadb() -> int:
     conf_url   = get_secret("CONFLUENCE_URL")
-    conf_space = get_secret("CONFLUENCE_SPACE") or "ITKB"
+    conf_space = get_secret("CONFLUENCE_SPACE") or "IKB"
 
     pages = get_space_pages()
     if not pages:
         return 0
     pages = [p for p in pages if not p["title"].lower().startswith("template")]
+    if not pages:
+        return 0
 
     client = chromadb.PersistentClient(path="./chroma_db")
-    try:
-        client.delete_collection("it_kb")
-    except Exception:
-        pass
-    collection = client.create_collection("it_kb")
+    collection = client.get_or_create_collection("it_kb")
+
+    # Clear old contents instead of deleting the collection
+    existing = collection.get()
+    if existing["ids"]:
+        collection.delete(ids=existing["ids"])
 
     docs, ids, metas = [], [], []
     for page in pages:
         title = page["title"]
         body  = strip_html(page["body"]["storage"]["value"])
         docs.append(f"# {title}\n\n{body}")
-        ids.append(page["id"])
+        ids.append(str(page["id"]))
         metas.append({
             "title": title,
             "url": f"{conf_url}/wiki/spaces/{conf_space}/pages/{page['id']}"
         })
         print(f"  Ingested: {title}")
 
-    collection.add(documents=docs, ids=ids, metadatas=metas)
+    collection.upsert(documents=docs, ids=ids, metadatas=metas)
     return len(docs)
 
 def confluence_status():
