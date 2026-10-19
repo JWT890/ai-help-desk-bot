@@ -181,3 +181,7 @@ st.write("in st.secrets:", "SNOW_PASSWORD" in st.secrets, "| in env:", "SNOW_PAS
 import hashlib, getpass
 pw = getpass.getpass("pw: ")
 print(len(pw), hashlib.sha256(pw.encode()).hexdigest()[:8])
+
+import hashlib, os
+h = lambda s: hashlib.sha256((s or "").encode()).hexdigest()[:8]
+st.write("st.secrets:", h(st.secrets.get("SNOW_PASSWORD")), "| env:", h(os.environ.get("SNOW_PASSWORD")), "| get_secret:", h(get_secret("SNOW_PASSWORD")))
