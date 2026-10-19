@@ -70,7 +70,10 @@ if "result" in st.session_state:
         st.markdown(f"{i}. {step}")
 
     # Link to source Confluence article
-    st.caption(f"KB source: {r['kb_article']}")
+    if r.get("kb_url"):
+        st.caption(f"KB source: [{r['kb_article']}]({r['kb_url']})")
+    else:
+        st.caption(f"KB source: {r['kb_article']}")
     if r.get("escalate"):
         st.error(f"⚠️ **Escalation needed** — {r['escalate_reason']}")
 

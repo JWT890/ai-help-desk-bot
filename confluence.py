@@ -39,6 +39,7 @@ def ingest_confluence_to_chromadb() -> int:
     pages = get_space_pages()
     if not pages:
         return 0
+    pages = [p for p in pages if not p["title"].lower().startswith("template")]
 
     client = chromadb.PersistentClient(path="./chroma_db")
     try:
