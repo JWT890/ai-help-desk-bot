@@ -10,7 +10,7 @@ Respond ONLY with a JSON object. No markdown. Schema:
   "escalate_reason": "reason or empty string"
 }"""
 from groq import Groq
-import json, os, sqlite3, uuid, chromadb
+import json, os, sqlite3, uuid
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -27,7 +27,6 @@ def get_secret(key):
         pass
     return os.getenv(key)
 
-client = Groq(api_key=get_secret("GROQ_API_KEY"))
 client = Groq(api_key=get_secret("GROQ_API_KEY"))
 MODEL = "qwen/qwen3.8-27b"   # keep in one place, reuse in app.py
 

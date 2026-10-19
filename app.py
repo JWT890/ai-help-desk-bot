@@ -10,9 +10,10 @@ st.set_page_config(page_title="AI IT Help Desk",
                    page_icon="🤖", layout="wide")
 
 # Pull KB from Confluence on cold start
-if not Path("chroma_db").exists():
+if "kb_loaded" not in st.session_state:
     with st.spinner("Pulling knowledge base from Confluence…"):
         ingest_confluence_to_chromadb()
+    st.session_state["kb_loaded"] = True
 
 with st.sidebar:
     st.title("🤖 AI IT Help Desk")

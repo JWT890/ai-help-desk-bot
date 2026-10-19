@@ -1,10 +1,12 @@
-import os, requests, chromadb, re
+import os, requests, chromadb, re, tempfile
+
+CHROMA_PATH = os.path.join(tempfile.gettempdir(), "chroma_db")
 _client = None
 
 def get_chroma_client():
     global _client
     if _client is None:
-        _client = chromadb.PersistentClient(path="./chroma_db")
+        _client = chromadb.PersistentClient(path=CHROMA_PATH)
     return _client
 
 def get_secret(key):
@@ -27,7 +29,7 @@ def get_space_pages():
     conf_url   = get_secret("CONFLUENCE_URL")
     conf_email = get_secret("CONFLUENCE_EMAIL")
     conf_token = get_secret("CONFLUENCE_TOKEN")
-    conf_space = get_secret("CONFLUENCE_SPACE") or "ITKB"
+    conf_space = get_secret("CONFLUENCE_SPACE") or "IKB"
     conf_auth  = (conf_email, conf_token)
     
     r = requests.get(
@@ -44,19 +46,9 @@ def ingest_confluence_to_chromadb() -> int:
     conf_space = get_secret("CONFLUENCE_SPACE") or "IKB"
 
     pages = get_space_pages()
-    if not pages:
-        return 0
     pages = [p for p in pages if not p["title"].lower().startswith("template")]
     if not pages:
         return 0
-
-    client = get_chroma_client()
-    collection = client.get_or_create_collection("it_kb")
-
-    # Clear old contents instead of deleting the collection
-    existing = collection.get()
-    if existing["ids"]:
-        collection.delete(ids=existing["ids"])
 
     docs, ids, metas = [], [], []
     for page in pages:
@@ -70,6 +62,10 @@ def ingest_confluence_to_chromadb() -> int:
         })
         print(f"  Ingested: {title}")
 
+    collection = get_chroma_client().get_or_create_collection("it_kb")
+    existing = collection.get()
+    if existing["ids"]:
+        collection.delete(ids=existing["ids"])
     collection.upsert(documents=docs, ids=ids, metadatas=metas)
     return len(docs)
 
@@ -77,7 +73,7 @@ def confluence_status():
     url   = get_secret("CONFLUENCE_URL")
     email = get_secret("CONFLUENCE_EMAIL")
     token = get_secret("CONFLUENCE_TOKEN")
-    space = get_secret("CONFLUENCE_SPACE") or "ITKB"
+    space = get_secret("CONFLUENCE_SPACE") or "IKB"
     if not all([url, email, token]):
         return {"connected": False, "reason": "missing secrets"}
     try:
@@ -101,7 +97,7 @@ def create_kb_article(title, issue, steps, resolution):
     conf_url   = get_secret("CONFLUENCE_URL")
     conf_email = get_secret("CONFLUENCE_EMAIL")
     conf_token = get_secret("CONFLUENCE_TOKEN")
-    conf_space = get_secret("CONFLUENCE_SPACE") or "ITKB"
+    conf_space = get_secret("CONFLUENCE_SPACE") or "IKB"
     conf_auth  = (conf_email, conf_token)
     conf_heads = {"Accept": "application/json"}
 
