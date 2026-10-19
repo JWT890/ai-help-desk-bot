@@ -81,8 +81,10 @@ def confluence_status():
                 "status_code": r.status_code,
                 "response": r.text[:200]}
     except Exception as e:
-        return {"connected": False, "reason": str(e),
-                "space": space, "url": url}
+        return {"connected": False, 
+            "reason": str(e),
+            "type": type(e).__name__,
+            "space": space, "url": url}
 def create_kb_article(title, issue, steps, resolution):
     """Write a resolved ticket back to Confluence as a new KB page."""
     conf_url   = get_secret("CONFLUENCE_URL")
