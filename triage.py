@@ -36,10 +36,28 @@ def get_collection():
 
 def search_kb(query, n=2):
     res = get_collection().query(query_texts=[query], n_results=n)
-    return res["documents"][0], res["metadatas"][0]
+    docs  = res["documents"][0] if res.get("documents") else []
+    metas = res["metadatas"][0] if res.get("metadatas") else []
+    pairs = [(d, m) for d, m in zip(docs, metas) if d]
+    return [d for d, _ in pairs], [m for _, m in pairs]
 
 def triage_issue(issue: str) -> dict:
     docs, metas = search_kb(issue)
+    if not docs:
+        return {
+            "category": "Other",
+            "severity": "Medium",
+            "summary": "Knowledge base is empty or unavailable.",
+            "steps": [
+                "Retry in a minute",
+                "Contact the IT help desk directly",
+            ],
+            "escalate": True,
+            "escalate_reason": "No KB content available",
+            "kb_article": "",
+            "kb_url": "",
+        }
+
     kb = "\n\n---\n\n".join(docs)
     resp = client.chat.completions.create(
         model=MODEL,
@@ -52,7 +70,7 @@ def triage_issue(issue: str) -> dict:
     )
     result = json.loads(resp.choices[0].message.content)
     top = metas[0] if metas else {}
-    result["kb_article"] = top.get("title", "")   # from Confluence, not the model
+    result["kb_article"] = top.get("title", "")
     result["kb_url"] = top.get("url", "")
     return result
 
