@@ -8,3 +8,8 @@ tickets.db
 .DS_Store
 models.txt
 test_snow.py
+fingerprint.pychroma_db/
+__pycache__/
+.streamlit/secrets.toml
+.env
+tickets.db
