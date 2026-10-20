@@ -45,7 +45,7 @@ with st.sidebar:
     email_addr = os.getenv("EMAIL_NOTIFY")
     if email_addr:
         st.success("Email notifications on")
-        st.caption(f"→ {email_addr}")
+        st.caption(f"→ notifications enabled")
     else:
         st.warning("Email not configured")
 
