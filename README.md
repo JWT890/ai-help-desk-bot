@@ -1,5 +1,8 @@
 # ai-help-desk-bot
 
+
+Built by using Claude over a couple days
+
 An AI-powered IT triage app. It classifies incidents, writes troubleshooting
 steps grounded in a live Confluence knowledge base, creates ServiceNow
 incidents automatically, and emails a ticket summary.
