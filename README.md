@@ -7,8 +7,8 @@ An AI-powered IT triage app. It classifies incidents, writes troubleshooting
 steps grounded in a live Confluence knowledge base, creates ServiceNow
 incidents automatically, and emails a ticket summary.
 
-**Live demo:** https://ai-app-desk-bot.streamlit.app
-**2-minute walkthrough:** https://www.loom.com/share/1edd4710deab42f98f31b62f18042807
+Live demo: https://ai-app-desk-bot.streamlit.app
+2-minute walkthrough: https://www.loom.com/share/228ffeaa20d84537a579af0d6a7a90c5
 
 ## How it works
 1. The user describes an IT issue.
