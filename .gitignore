@@ -3,12 +3,13 @@
 venv/
 .streamlit/
 streamlit
+chroma_db/
 chrome_db/
 tickets.db
 .DS_Store
 models.txt
 test_snow.py
-fingerprint.pychroma_db/
+fingerprint.py
 __pycache__/
 .streamlit/secrets.toml
 .env
