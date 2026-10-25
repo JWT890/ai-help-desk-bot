@@ -23,14 +23,14 @@ with st.sidebar:
     snow = snow_status()
     if snow["connected"]:
         st.success("ServiceNow connected")
-        st.caption(snow.get("instance",""))
+        st.caption(snow.get("-> instance connected"))
     else:
         st.warning("ServiceNow not configured")
 
     conf = confluence_status()
     if conf["connected"]:
         st.success("Confluence connected")
-        st.caption(f"Space: {conf['space']}")
+        st.caption("-> KB connected")
         if st.button("Refresh KB from Confluence"):
             with st.spinner("Refreshing…"):
                 n = ingest_confluence_to_chromadb()
